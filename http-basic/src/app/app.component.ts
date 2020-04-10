@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpEventType} from '@angular/common/http';
+import {map, tap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -8,19 +9,25 @@ import {HttpClient} from '@angular/common/http';
 })
 
 export class AppComponent {
-  titles: any = ['lorem 1', 'lorem 2', 'lorem 3', 'lorem 4'];
+  titles: Array<string> = ['lorem 1', 'lorem 2', 'lorem 3', 'lorem 4'];
 
   constructor(private http: HttpClient) {
 
   }
 
   getData() {
-    this.http.get('https://jsonplaceholder.typicode.com/posts').subscribe(response => {
-      this.titles = response.slice(0, 10).map(rsp => rsp.title);
-    });
+    this.http.get<[string]>('https://jsonplaceholder.typicode.com/posts')
+      .pipe(map(rsp => {
+        return rsp.slice(0, 10).map(el => el['title']);
+      }))
+      .subscribe(response => {
+        this.titles = response;
+      });
   }
 
   postData() {
+    const postData = {title: 'Terminator'};
+    this.http.post('https://postman-echo.com/post', postData);
     // to post data
   }
 
@@ -29,6 +36,6 @@ export class AppComponent {
   }
 
   deleteData() {
-    // to delete data
+    this.http.delete('https://jsonplaceholder.typicode.com/posts/1');
   }
 }
